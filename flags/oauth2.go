@@ -81,6 +81,13 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 
 		scopes := strings.Split(str_scopes, ",")
 
+		path_auth, err := flags.StringVar(fs, "path-oauth2-auth")
+
+		if err != nil {
+			oauth2_err = err
+			return
+		}
+
 		path_token, err := flags.StringVar(fs, "path-oauth2-token")
 
 		if err != nil {
@@ -158,8 +165,9 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 			CookieName:   cookie_map["name"],
 			CookieSecret: cookie_map["secret"],
 			CookieSalt:   cookie_map["salt"],
-			SigninCrumb:  signin_crumb,
-			SignoutCrumb: signout_crumb,
+			AuthCrumb:    signin_crumb,
+			UnAuthCrumb:  signout_crumb,
+			AuthURL:      path_auth,
 		}
 	}
 

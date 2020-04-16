@@ -39,7 +39,7 @@ func EnsureOAuth2TokenHandler(opts *oauth2.Options, next http.Handler) http.Hand
 		}
 
 		if err != nil {
-			http.Redirect(rsp, req, opts.Config.RedirectURL, 303)
+			http.Redirect(rsp, req, opts.AuthURL, 303)
 			return
 		}
 
@@ -91,7 +91,7 @@ func OAuth2AuthorizeHandler(opts *oauth2.Options) (http.Handler, error) {
 		redir_url := redir.String()
 		cfg.RedirectURL = redir_url
 
-		state, err := crumb.GenerateCrumb(opts.SigninCrumb, req)
+		state, err := crumb.GenerateCrumb(opts.AuthCrumb, req)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -138,7 +138,7 @@ func OAuth2AccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
 			return
 		}
 
-		ok, err := crumb.ValidateCrumb(opts.SigninCrumb, req, state)
+		ok, err := crumb.ValidateCrumb(opts.AuthCrumb, req, state)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -201,7 +201,7 @@ func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) 
 				return
 			}
 
-			ok, err := crumb.ValidateCrumb(opts.SignoutCrumb, req, crumb_var)
+			ok, err := crumb.ValidateCrumb(opts.UnAuthCrumb, req, crumb_var)
 
 			if err != nil {
 				http.Error(rsp, err.Error(), http.StatusInternalServerError)

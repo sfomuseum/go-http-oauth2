@@ -6,11 +6,11 @@ import (
 )
 
 type Options struct {
-	SigninURL    string
+	AuthURL      string
 	CookieName   string
 	CookieSecret string
 	CookieSalt   string
 	Config       *oauth2.Config
-	SigninCrumb  *crumb.CrumbConfig
-	SignoutCrumb *crumb.CrumbConfig
+	AuthCrumb    *crumb.CrumbConfig
+	UnAuthCrumb  *crumb.CrumbConfig
 }
