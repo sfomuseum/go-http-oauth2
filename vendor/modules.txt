@@ -13,6 +13,8 @@ github.com/aaronland/go-string/dsn
 github.com/aaronland/go-string/random
 # github.com/golang/protobuf v1.2.0
 github.com/golang/protobuf/proto
+# github.com/sfomuseum/go-flags v0.0.0-20200416180755-b77d83edf7f9
+github.com/sfomuseum/go-flags
 # github.com/whosonfirst/go-sanitize v0.1.0
 github.com/whosonfirst/go-sanitize
 # golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4

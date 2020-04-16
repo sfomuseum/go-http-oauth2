@@ -18,7 +18,8 @@ import (
 	"github.com/aaronland/go-http-cookie"
 	"github.com/aaronland/go-http-crumb"
 	"github.com/aaronland/go-http-sanitize"
-	"golang.org/x/oauth2"
+	"github.com/sfomuseum/go-http-oauth2"
+	goog_oauth2 "golang.org/x/oauth2"
 	_ "log"
 	"net/http"
 	"net/url"
@@ -26,17 +27,7 @@ import (
 
 const CONTEXT_TOKEN_KEY string = "token"
 
-type OAuth2Options struct {
-	SigninURL    string
-	CookieName   string
-	CookieSecret string
-	CookieSalt   string
-	Config       *oauth2.Config
-	SigninCrumb  *crumb.CrumbConfig
-	SignoutCrumb *crumb.CrumbConfig
-}
-
-func EnsureOAuth2TokenHandler(opts *OAuth2Options, next http.Handler) http.Handler {
+func EnsureOAuth2TokenHandler(opts *oauth2.Options, next http.Handler) http.Handler {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
@@ -66,7 +57,7 @@ func EnsureOAuth2TokenHandler(opts *OAuth2Options, next http.Handler) http.Handl
 	return h
 }
 
-func OAuth2AuthorizeHandler(opts *OAuth2Options) (http.Handler, error) {
+func OAuth2AuthorizeHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
@@ -107,7 +98,7 @@ func OAuth2AuthorizeHandler(opts *OAuth2Options) (http.Handler, error) {
 			return
 		}
 
-		auth_url := cfg.AuthCodeURL(state, oauth2.AccessTypeOnline)
+		auth_url := cfg.AuthCodeURL(state, goog_oauth2.AccessTypeOnline)
 
 		http.Redirect(rsp, req, auth_url, http.StatusSeeOther)
 		return
@@ -117,13 +108,13 @@ func OAuth2AuthorizeHandler(opts *OAuth2Options) (http.Handler, error) {
 	return h, nil
 }
 
-func OAuth2AccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
+func OAuth2AccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		cfg := opts.Config
 
-		code, err := StringParamFromRequest(req, "code")
+		code, err := sanitize.RequestString(req, "code")
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusBadRequest)
@@ -135,7 +126,7 @@ func OAuth2AccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
 			return
 		}
 
-		state, err := StringParamFromRequest(req, "state")
+		state, err := sanitize.RequestString(req, "state")
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusBadRequest)
@@ -161,7 +152,7 @@ func OAuth2AccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
 
 		ctx := req.Context()
 
-		tok, err := cfg.Exchange(ctx, code, oauth2.AccessTypeOnline)
+		tok, err := cfg.Exchange(ctx, code, goog_oauth2.AccessTypeOnline)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusBadRequest)
@@ -190,7 +181,7 @@ func OAuth2AccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
 // this is not ready for use yet - I still need to think through how/where
 // the signout crumb is set in actual HTML pages(20200416/thisisaaronland)
 
-func OAuth2RemoveAccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
+func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
@@ -241,7 +232,7 @@ func OAuth2RemoveAccessTokenHandler(opts *OAuth2Options) (http.Handler, error) {
 	return h, nil
 }
 
-func GetTokenFromCookie(opts *OAuth2Options, req *http.Request) (*oauth2.Token, error) {
+func GetTokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.Token, error) {
 
 	ck, err := NewTokenCookie(opts)
 
@@ -259,7 +250,7 @@ func GetTokenFromCookie(opts *OAuth2Options, req *http.Request) (*oauth2.Token, 
 		return nil, http.ErrNoCookie
 	}
 
-	var token *oauth2.Token
+	var token *goog_oauth2.Token
 
 	err = json.Unmarshal([]byte(str_token), &token)
 
@@ -270,7 +261,7 @@ func GetTokenFromCookie(opts *OAuth2Options, req *http.Request) (*oauth2.Token, 
 	return token, nil
 }
 
-func SetCookieWithToken(opts *OAuth2Options, rsp http.ResponseWriter, tok *oauth2.Token) error {
+func SetCookieWithToken(opts *oauth2.Options, rsp http.ResponseWriter, tok *goog_oauth2.Token) error {
 
 	ck, err := NewTokenCookie(opts)
 
@@ -299,7 +290,7 @@ func SetCookieWithToken(opts *OAuth2Options, rsp http.ResponseWriter, tok *oauth
 	return ck.SetCookie(rsp, http_cookie)
 }
 
-func UnsetTokenCookie(opts *OAuth2Options, rsp http.ResponseWriter) error {
+func UnsetTokenCookie(opts *oauth2.Options, rsp http.ResponseWriter) error {
 
 	ck, err := NewTokenCookie(opts)
 
@@ -310,11 +301,11 @@ func UnsetTokenCookie(opts *OAuth2Options, rsp http.ResponseWriter) error {
 	return ck.Delete(rsp)
 }
 
-func NewTokenCookie(opts *OAuth2Options) (cookie.Cookie, error) {
+func NewTokenCookie(opts *oauth2.Options) (cookie.Cookie, error) {
 	return cookie.NewAuthCookie(opts.CookieName, opts.CookieSecret, opts.CookieSalt)
 }
 
-func SetTokenContext(req *http.Request, token *oauth2.Token) (*http.Request, error) {
+func SetTokenContext(req *http.Request, token *goog_oauth2.Token) (*http.Request, error) {
 
 	ctx := req.Context()
 	ctx = context.WithValue(ctx, CONTEXT_TOKEN_KEY, token)
@@ -322,7 +313,7 @@ func SetTokenContext(req *http.Request, token *oauth2.Token) (*http.Request, err
 	return req.WithContext(ctx), nil
 }
 
-func GetTokenContext(req *http.Request) (*oauth2.Token, error) {
+func GetTokenContext(req *http.Request) (*goog_oauth2.Token, error) {
 
 	ctx := req.Context()
 	v := ctx.Value(CONTEXT_TOKEN_KEY)
@@ -331,28 +322,6 @@ func GetTokenContext(req *http.Request) (*oauth2.Token, error) {
 		return nil, nil
 	}
 
-	token := v.(*oauth2.Token)
+	token := v.(*goog_oauth2.Token)
 	return token, nil
-}
-
-// please put this in go-http-sanitize (20200416/thisisaaronland)
-
-func StringParamFromRequest(req *http.Request, param string) (string, error) {
-
-	value, err := sanitize.PostString(req, param)
-
-	if err != nil {
-		return "", err
-	}
-
-	if value == "" {
-
-		value, err = sanitize.GetString(req, param)
-
-		if err != nil {
-			return "", err
-		}
-	}
-
-	return value, nil
 }
