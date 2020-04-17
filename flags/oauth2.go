@@ -21,7 +21,7 @@ var oauth2_err error
 
 func AppendOAuth2Flags(fs *flag.FlagSet) error {
 
-	fs.Bool("enable-oauth2-login", false, "Enable support for logging in through an OAuth2 provider.")
+	fs.Bool("enable-oauth2", false, "Enable support for logging in through an OAuth2 provider.")
 
 	fs.String("oauth2-client-id", "", "The OAuth2 application client ID used for validating users.")
 	fs.String("oauth2-client-secret", "", "The OAuth2 application secret used for validating users.")
