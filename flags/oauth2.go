@@ -21,20 +21,20 @@ var oauth2_err error
 
 func AppendOAuth2Flags(fs *flag.FlagSet) error {
 
-	fs.Bool("enable-oauth2", false, "...")
+	fs.Bool("enable-oauth2-login", false, "Enable support for logging in through an OAuth2 provider.")
 
-	fs.String("oauth2-client-id", "", "...")
-	fs.String("oauth2-client-secret", "", "...")
+	fs.String("oauth2-client-id", "", "The OAuth2 application client ID used for validating users.")
+	fs.String("oauth2-client-secret", "", "The OAuth2 application secret used for validating users.")
 
-	fs.String("oauth2-scopes", "", "...")
+	fs.String("oauth2-scopes", "", "A comma-separated list of OAuth2 scopes to request when validating users.")
 
-	fs.String("path-oauth2-auth", "/signin/", "...")
-	fs.String("path-oauth2-token", "/auth/", "...")
+	fs.String("path-oauth2-auth", "/signin/", "The relative path where users log in to this application.")
+	fs.String("path-oauth2-token", "/auth/", "The relative path users are redirected after being validated by an OAuth2 provider.")
 
-	fs.String("oauth2-auth-url", "", "...")
-	fs.String("oauth2-token-url", "", "...")
+	fs.String("oauth2-auth-url", "", "The URL of the OAuth2 provider's authorization endpoint.")
+	fs.String("oauth2-token-url", "", "The URL of the OAuth2 provider's token retrieval endpoint.")
 
-	fs.String("oauth2-cookie-dsn", "", "...")
+	fs.String("oauth2-cookie-uri", "", "A valid aaronland/go-http-cookie.Cookie URI string.")
 
 	return nil
 }
