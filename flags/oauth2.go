@@ -153,11 +153,11 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 		}
 
 		oauth2_opts = &oauth2.Options{
-			Config:       oauth2_cfg,
+			Config:      oauth2_cfg,
 			CookieURI:   cookie_uri,
-			AuthCrumb:    signin_crumb,
-			UnAuthCrumb:  signout_crumb,
-			AuthURL:      path_auth,
+			AuthCrumb:   signin_crumb,
+			UnAuthCrumb: signout_crumb,
+			AuthURL:     path_auth,
 		}
 	}
 

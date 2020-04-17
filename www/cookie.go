@@ -1,20 +1,9 @@
 package www
 
-/*
-
-mmmmm....aybe? (20200416/thisisaaronland)
-
-type Authenticator interface {
-	SigninHandler() http.Handler
-	SignoutHandler() http.Handler
-	ValidateHandler() http.Handler
-}
-
-*/
-
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"github.com/aaronland/go-http-cookie"
 	"github.com/aaronland/go-http-crumb"
 	"github.com/aaronland/go-http-sanitize"
@@ -27,11 +16,15 @@ import (
 
 const CONTEXT_TOKEN_KEY string = "token"
 
-func EnsureOAuth2TokenHandler(opts *oauth2.Options, next http.Handler) http.Handler {
+func EnsureOAuth2TokenCookieHandlerWithErrorHandler(opts *oauth2.Options, next http.Handler, error_handler http.Handler) http.Handler {
+	return next // not implemented
+}
+
+func EnsureOAuth2TokenCookieHandler(opts *oauth2.Options, next http.Handler) http.Handler {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		token, err := GetTokenFromCookie(opts, req)
+		token, err := GetOAuth2TokenFromCookie(opts, req)
 
 		if err != nil && err != http.ErrNoCookie {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -43,7 +36,7 @@ func EnsureOAuth2TokenHandler(opts *oauth2.Options, next http.Handler) http.Hand
 			return
 		}
 
-		req, err = SetTokenContext(req, token)
+		req, err = SetOAuth2TokenContext(req, token)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -57,13 +50,17 @@ func EnsureOAuth2TokenHandler(opts *oauth2.Options, next http.Handler) http.Hand
 	return h
 }
 
-func OAuth2AuthorizeHandler(opts *oauth2.Options) (http.Handler, error) {
+func OAuth2TokenCookieAuthorizeHandlerWithErrorHandler(opts *oauth2.Options, error_handler http.Handler) (http.Handler, error) {
+	return nil, errors.New("Not implemented")
+}
+
+func OAuth2TokenCookieAuthorizeHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
 		cfg := opts.Config
 
-		token, err := GetTokenFromCookie(opts, req)
+		token, err := GetOAuth2TokenFromCookie(opts, req)
 
 		if err != nil && err != http.ErrNoCookie {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -108,7 +105,11 @@ func OAuth2AuthorizeHandler(opts *oauth2.Options) (http.Handler, error) {
 	return h, nil
 }
 
-func OAuth2AccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
+func OAuth2AccessTokenCookieHandlerWithErrorHandler(opts *oauth2.Options, error_handler http.Handler) (http.Handler, error) {
+	return nil, errors.New("Not implemented")
+}
+
+func OAuth2AccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
@@ -159,7 +160,39 @@ func OAuth2AccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
 			return
 		}
 
-		err = SetCookieWithToken(opts, rsp, tok)
+		ck, err := NewOAuth2TokenCookie(ctx, opts)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		enc_token, err := json.Marshal(tok)
+
+		if err != nil {
+			http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		str_token := string(enc_token)
+
+		// https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
+
+		http_cookie := &http.Cookie{
+			Value:    str_token,
+			SameSite: http.SameSiteLaxMode,
+			// SameSite: http.SameSiteStrictMode,	// I can not make this work... (20200416/thisisaaronland)
+			Expires: tok.Expiry,
+			Path:    "/",
+		}
+
+		// because this: https://github.com/golang/go/issues/28940#issuecomment-441749380
+
+		if req.TLS != nil {
+			http_cookie.Secure = true
+		}
+
+		err = ck.SetCookie(rsp, http_cookie)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -181,11 +214,11 @@ func OAuth2AccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
 // this is not ready for use yet - I still need to think through how/where
 // the signout crumb is set in actual HTML pages(20200416/thisisaaronland)
 
-func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) {
+func OAuth2RemoveAccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		token, err := GetTokenFromCookie(opts, req)
+		token, err := GetOAuth2TokenFromCookie(opts, req)
 
 		if err != nil && err != http.ErrNoCookie {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -213,7 +246,16 @@ func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) 
 				return
 			}
 
-			err = UnsetTokenCookie(opts, rsp)
+			ctx := req.Context()
+
+			ck, err := NewOAuth2TokenCookie(ctx, opts)
+
+			if err != nil {
+				http.Error(rsp, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			err = ck.Delete(rsp)
 
 			if err != nil {
 				http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -232,10 +274,10 @@ func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) 
 	return h, nil
 }
 
-func GetTokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.Token, error) {
+func GetOAuth2TokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.Token, error) {
 
 	ctx := req.Context()
-	ck, err := NewTokenCookie(ctx, opts)
+	ck, err := NewOAuth2TokenCookie(ctx, opts)
 
 	if err != nil {
 		return nil, err
@@ -262,54 +304,11 @@ func GetTokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.T
 	return token, nil
 }
 
-func SetCookieWithToken(opts *oauth2.Options, rsp http.ResponseWriter, tok *goog_oauth2.Token) error {
-
-	ctx := context.Background()	// FIX ME	
-	ck, err := NewTokenCookie(ctx, opts)
-
-	if err != nil {
-		return err
-	}
-
-	enc_token, err := json.Marshal(tok)
-
-	if err != nil {
-		return err
-	}
-
-	str_token := string(enc_token)
-
-	// https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
-
-	http_cookie := &http.Cookie{
-		Value:    str_token,
-		SameSite: http.SameSiteLaxMode,
-		// SameSite: http.SameSiteStrictMode,	// I can not make this work... (20200416/thisisaaronland)
-		Expires: tok.Expiry,
-		Path:    "/",
-		// Secure: secure,	// FIX ME
-	}
-
-	return ck.SetCookie(rsp, http_cookie)
-}
-
-func UnsetTokenCookie(opts *oauth2.Options, rsp http.ResponseWriter) error {
-
-	ctx := context.Background()	// FIX ME
-	ck, err := NewTokenCookie(ctx, opts)
-
-	if err != nil {
-		return err
-	}
-
-	return ck.Delete(rsp)
-}
-
-func NewTokenCookie(ctx context.Context, opts *oauth2.Options) (cookie.Cookie, error) {
+func NewOAuth2TokenCookie(ctx context.Context, opts *oauth2.Options) (cookie.Cookie, error) {
 	return cookie.NewCookie(ctx, opts.CookieURI)
 }
 
-func SetTokenContext(req *http.Request, token *goog_oauth2.Token) (*http.Request, error) {
+func SetOAuth2TokenContext(req *http.Request, token *goog_oauth2.Token) (*http.Request, error) {
 
 	ctx := req.Context()
 	ctx = context.WithValue(ctx, CONTEXT_TOKEN_KEY, token)
@@ -317,7 +316,7 @@ func SetTokenContext(req *http.Request, token *goog_oauth2.Token) (*http.Request
 	return req.WithContext(ctx), nil
 }
 
-func GetTokenContext(req *http.Request) (*goog_oauth2.Token, error) {
+func GetOAuth2TokenContext(req *http.Request) (*goog_oauth2.Token, error) {
 
 	ctx := req.Context()
 	v := ctx.Value(CONTEXT_TOKEN_KEY)
