@@ -6,7 +6,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/aaronland/go-http-crumb"
-	"github.com/aaronland/go-string/dsn"
 	"github.com/aaronland/go-string/random"
 	"github.com/sfomuseum/go-flags"
 	"github.com/sfomuseum/go-http-oauth2"
@@ -106,14 +105,14 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 			RedirectURL: path_token,
 		}
 
-		cookie_dsn, err := flags.StringVar(fs, "oauth2-cookie-dsn")
+		cookie_uri, err := flags.StringVar(fs, "oauth2-cookie-uri")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		if cookie_dsn == "debug" {
+		if cookie_uri == "debug" {
 
 			r_opts := random.DefaultOptions()
 			r_opts.AlphaNumeric = true
@@ -134,14 +133,7 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 				return
 			}
 
-			cookie_dsn = fmt.Sprintf("name=%s secret=%s salt=%s", name, secret, salt)
-		}
-
-		cookie_map, err := dsn.StringToDSNWithKeys(cookie_dsn, "name", "secret", "salt")
-
-		if err != nil {
-			oauth2_err = err
-			return
+			cookie_uri = fmt.Sprintf("encrypted://?name=%s&secret=%s&salt=%s", name, secret, salt)
 		}
 
 		signin_crumb, err := NewOAuth2CrumbConfig("signin", 120)
@@ -162,9 +154,7 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 
 		oauth2_opts = &oauth2.Options{
 			Config:       oauth2_cfg,
-			CookieName:   cookie_map["name"],
-			CookieSecret: cookie_map["secret"],
-			CookieSalt:   cookie_map["salt"],
+			CookieURI:   cookie_uri,
 			AuthCrumb:    signin_crumb,
 			UnAuthCrumb:  signout_crumb,
 			AuthURL:      path_auth,

@@ -234,7 +234,8 @@ func OAuth2RemoveAccessTokenHandler(opts *oauth2.Options) (http.Handler, error) 
 
 func GetTokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.Token, error) {
 
-	ck, err := NewTokenCookie(opts)
+	ctx := req.Context()
+	ck, err := NewTokenCookie(ctx, opts)
 
 	if err != nil {
 		return nil, err
@@ -263,7 +264,8 @@ func GetTokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.T
 
 func SetCookieWithToken(opts *oauth2.Options, rsp http.ResponseWriter, tok *goog_oauth2.Token) error {
 
-	ck, err := NewTokenCookie(opts)
+	ctx := context.Background()	// FIX ME	
+	ck, err := NewTokenCookie(ctx, opts)
 
 	if err != nil {
 		return err
@@ -285,6 +287,7 @@ func SetCookieWithToken(opts *oauth2.Options, rsp http.ResponseWriter, tok *goog
 		// SameSite: http.SameSiteStrictMode,	// I can not make this work... (20200416/thisisaaronland)
 		Expires: tok.Expiry,
 		Path:    "/",
+		// Secure: secure,	// FIX ME
 	}
 
 	return ck.SetCookie(rsp, http_cookie)
@@ -292,7 +295,8 @@ func SetCookieWithToken(opts *oauth2.Options, rsp http.ResponseWriter, tok *goog
 
 func UnsetTokenCookie(opts *oauth2.Options, rsp http.ResponseWriter) error {
 
-	ck, err := NewTokenCookie(opts)
+	ctx := context.Background()	// FIX ME
+	ck, err := NewTokenCookie(ctx, opts)
 
 	if err != nil {
 		return err
@@ -301,8 +305,8 @@ func UnsetTokenCookie(opts *oauth2.Options, rsp http.ResponseWriter) error {
 	return ck.Delete(rsp)
 }
 
-func NewTokenCookie(opts *oauth2.Options) (cookie.Cookie, error) {
-	return cookie.NewAuthCookie(opts.CookieName, opts.CookieSecret, opts.CookieSalt)
+func NewTokenCookie(ctx context.Context, opts *oauth2.Options) (cookie.Cookie, error) {
+	return cookie.NewCookie(ctx, opts.CookieURI)
 }
 
 func SetTokenContext(req *http.Request, token *goog_oauth2.Token) (*http.Request, error) {

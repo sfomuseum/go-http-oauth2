@@ -1,10 +1,17 @@
 package cookie
 
 import (
+	"context"
 	"errors"
 	"github.com/aaronland/go-secretbox"
-	go_http "net/http"
+	"net/http"
+	"net/url"
 )
+
+func init() {
+	ctx := context.Background()
+	RegisterCookie(ctx, "encrypted", NewEncryptedCookie)
+}
 
 type EncryptedCookie struct {
 	Cookie
@@ -13,7 +20,19 @@ type EncryptedCookie struct {
 	salt   string
 }
 
-func NewEncryptedCookie(name string, secret string, salt string) (Cookie, error) {
+func NewEncryptedCookie(ctx context.Context, uri string) (Cookie, error) {
+
+	u, err := url.Parse(uri)
+
+	if err != nil {
+		return nil, err
+	}
+
+	q := u.Query()
+
+	name := q.Get("name")
+	secret := q.Get("secret")
+	salt := q.Get("salt")
 
 	if name == "" {
 		return nil, errors.New("Missing name")
@@ -36,7 +55,7 @@ func NewEncryptedCookie(name string, secret string, salt string) (Cookie, error)
 	return &c, nil
 }
 
-func (c *EncryptedCookie) Get(req *go_http.Request) (string, error) {
+func (c *EncryptedCookie) Get(req *http.Request) (string, error) {
 
 	http_cookie, err := req.Cookie(c.name)
 
@@ -63,16 +82,16 @@ func (c *EncryptedCookie) Get(req *go_http.Request) (string, error) {
 	return str_body, nil
 }
 
-func (c *EncryptedCookie) Set(rsp go_http.ResponseWriter, body string) error {
+func (c *EncryptedCookie) Set(rsp http.ResponseWriter, body string) error {
 
-	http_cookie := &go_http.Cookie{
+	http_cookie := &http.Cookie{
 		Value: body,
 	}
 
 	return c.SetCookie(rsp, http_cookie)
 }
 
-func (c *EncryptedCookie) SetCookie(rsp go_http.ResponseWriter, http_cookie *go_http.Cookie) error {
+func (c *EncryptedCookie) SetCookie(rsp http.ResponseWriter, http_cookie *http.Cookie) error {
 
 	if http_cookie.Name != "" {
 		return errors.New("Cookie name already set")
@@ -98,18 +117,18 @@ func (c *EncryptedCookie) SetCookie(rsp go_http.ResponseWriter, http_cookie *go_
 	http_cookie.Name = c.name
 	http_cookie.Value = enc
 
-	go_http.SetCookie(rsp, http_cookie)
+	http.SetCookie(rsp, http_cookie)
 	return nil
 }
 
-func (c *EncryptedCookie) Delete(rsp go_http.ResponseWriter) error {
+func (c *EncryptedCookie) Delete(rsp http.ResponseWriter) error {
 
-	http_cookie := go_http.Cookie{
+	http_cookie := http.Cookie{
 		Name:   c.name,
 		Value:  "",
 		MaxAge: -1,
 	}
 
-	go_http.SetCookie(rsp, &http_cookie)
+	http.SetCookie(rsp, &http_cookie)
 	return nil
 }
