@@ -10,6 +10,8 @@ import (
 	"github.com/sfomuseum/go-flags"
 	"github.com/sfomuseum/go-http-oauth2"
 	goog_oauth2 "golang.org/x/oauth2"
+	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -136,16 +138,14 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 			cookie_uri = fmt.Sprintf("encrypted://?name=%s&secret=%s&salt=%s", name, secret, salt)
 		}
 
-		signin_crumb, err := NewOAuth2CrumbConfig("signin", 120)
+		signin_crumb, err := NewOAuth2Crumb(ctx, "signin", 120)
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		// not sure about this (20204016/thisisaaronland)
-
-		signout_crumb, err := NewOAuth2CrumbConfig("signout", 3600)
+		signout_crumb, err := NewOAuth2Crumb(ctx, "signout", 3600)
 
 		if err != nil {
 			oauth2_err = err
@@ -174,7 +174,7 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 	return oauth2_opts, nil
 }
 
-func NewOAuth2CrumbConfig(key string, ttl int64) (*crumb.CrumbConfig, error) {
+func NewOAuth2Crumb(ctx context.Context, key string, ttl int64) (crumb.Crumb, error) {
 
 	r_opts := random.DefaultOptions()
 	r_opts.AlphaNumeric = true
@@ -192,15 +192,16 @@ func NewOAuth2CrumbConfig(key string, ttl int64) (*crumb.CrumbConfig, error) {
 		return nil, err
 	}
 
-	separator := ":"
+	str_ttl := strconv.FormatInt(ttl, 10)
 
-	cfg := &crumb.CrumbConfig{
-		Extra:     extra,
-		Separator: separator,
-		Secret:    secret,
-		TTL:       ttl,
-		Key:       key,
-	}
+	params := url.Values{}
+	params.Set("extra", extra)
+	params.Set("separator", ":")
+	params.Set("secret", secret)
+	params.Set("ttl", str_ttl)
+	params.Set("key", key)
 
-	return cfg, nil
+	crumb_uri := fmt.Sprintf("encrypted://?%s", params.Encode())
+
+	return crumb.NewCrumb(ctx, crumb_uri)
 }

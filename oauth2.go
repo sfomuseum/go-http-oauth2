@@ -9,6 +9,6 @@ type Options struct {
 	AuthURL     string
 	CookieURI   string
 	Config      *oauth2.Config
-	AuthCrumb   *crumb.CrumbConfig
-	UnAuthCrumb *crumb.CrumbConfig
+	AuthCrumb   crumb.Crumb
+	UnAuthCrumb crumb.Crumb
 }

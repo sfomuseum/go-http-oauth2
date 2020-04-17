@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/aaronland/go-http-cookie"
-	"github.com/aaronland/go-http-crumb"
 	"github.com/aaronland/go-http-sanitize"
 	"github.com/sfomuseum/go-http-oauth2"
 	goog_oauth2 "golang.org/x/oauth2"
@@ -88,7 +87,7 @@ func OAuth2TokenCookieAuthorizeHandler(opts *oauth2.Options) (http.Handler, erro
 		redir_url := redir.String()
 		cfg.RedirectURL = redir_url
 
-		state, err := crumb.GenerateCrumb(opts.AuthCrumb, req)
+		state, err := opts.AuthCrumb.Generate(req)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -139,7 +138,7 @@ func OAuth2AccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) 
 			return
 		}
 
-		ok, err := crumb.ValidateCrumb(opts.AuthCrumb, req, state)
+		ok, err := opts.AuthCrumb.Validate(req, state)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -234,7 +233,7 @@ func OAuth2RemoveAccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, e
 				return
 			}
 
-			ok, err := crumb.ValidateCrumb(opts.UnAuthCrumb, req, crumb_var)
+			ok, err := opts.UnAuthCrumb.Validate(req, crumb_var)
 
 			if err != nil {
 				http.Error(rsp, err.Error(), http.StatusInternalServerError)
