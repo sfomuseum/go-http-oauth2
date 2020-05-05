@@ -7,6 +7,7 @@ import (
 	"github.com/aaronland/go-http-cookie"
 	"github.com/aaronland/go-http-sanitize"
 	"github.com/sfomuseum/go-http-oauth2"
+	"github.com/awnumar/memguard"
 	goog_oauth2 "golang.org/x/oauth2"
 	_ "log"
 	"net/http"
@@ -173,12 +174,11 @@ func OAuth2AccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) 
 			return
 		}
 
-		str_token := string(enc_token)
+		buf_token := memguard.NewBufferFromBytes(enc_token)
 
 		// https://tools.ietf.org/html/draft-ietf-httpbis-cookie-same-site-00#section-4.1.1
 
 		http_cookie := &http.Cookie{
-			Value:    str_token,
 			SameSite: http.SameSiteLaxMode,
 			// SameSite: http.SameSiteStrictMode,	// I can not make this work... (20200416/thisisaaronland)
 			Expires: tok.Expiry,
@@ -191,7 +191,7 @@ func OAuth2AccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) 
 			http_cookie.Secure = true
 		}
 
-		err = ck.SetCookie(rsp, http_cookie)
+		err = ck.SetWithCookie(rsp, buf_token, http_cookie)
 
 		if err != nil {
 			http.Error(rsp, err.Error(), http.StatusInternalServerError)
@@ -282,19 +282,19 @@ func GetOAuth2TokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oa
 		return nil, err
 	}
 
-	str_token, err := ck.Get(req)
+	buf_token, err := ck.Get(req)
 
 	if err != nil && err != http.ErrNoCookie {
 		return nil, err
 	}
 
-	if str_token == "" {
+	if buf_token == nil {
 		return nil, http.ErrNoCookie
 	}
 
 	var token *goog_oauth2.Token
 
-	err = json.Unmarshal([]byte(str_token), &token)
+	err = json.Unmarshal(buf_token.Bytes(), &token)
 
 	if err != nil {
 		return nil, err

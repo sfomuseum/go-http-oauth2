@@ -1,4 +1,4 @@
-# github.com/aaronland/go-http-cookie v0.3.0
+# github.com/aaronland/go-http-cookie v0.3.1
 github.com/aaronland/go-http-cookie
 # github.com/aaronland/go-http-crumb v0.1.0
 github.com/aaronland/go-http-crumb
