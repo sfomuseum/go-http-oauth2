@@ -3,15 +3,16 @@ package cookie
 import (
 	"context"
 	"github.com/aaronland/go-roster"
+	"github.com/awnumar/memguard"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
 type Cookie interface {
-	Get(*http.Request) (string, error)
-	Set(http.ResponseWriter, string) error
-	SetCookie(http.ResponseWriter, *http.Cookie) error
+	Get(*http.Request) (*memguard.LockedBuffer, error)
+	Set(http.ResponseWriter, *memguard.LockedBuffer) error
+	SetWithCookie(http.ResponseWriter, *memguard.LockedBuffer, *http.Cookie) error
 	Delete(http.ResponseWriter) error
 }
 

@@ -1,6 +1,6 @@
-# github.com/aaronland/go-http-cookie v0.1.0
+# github.com/aaronland/go-http-cookie v0.3.0
 github.com/aaronland/go-http-cookie
-# github.com/aaronland/go-http-crumb v0.0.5
+# github.com/aaronland/go-http-crumb v0.1.0
 github.com/aaronland/go-http-crumb
 # github.com/aaronland/go-http-rewrite v0.0.4
 github.com/aaronland/go-http-rewrite
@@ -8,25 +8,30 @@ github.com/aaronland/go-http-rewrite
 github.com/aaronland/go-http-sanitize
 # github.com/aaronland/go-roster v0.0.1
 github.com/aaronland/go-roster
-# github.com/aaronland/go-secretbox v0.2.0
+# github.com/aaronland/go-secretbox v0.3.0
 github.com/aaronland/go-secretbox
 # github.com/aaronland/go-string v0.1.2
-github.com/aaronland/go-string/dsn
 github.com/aaronland/go-string/random
+# github.com/awnumar/memcall v0.0.0-20191004114545-73db50fd9f80
+github.com/awnumar/memcall
+# github.com/awnumar/memguard v0.22.2
+github.com/awnumar/memguard
+github.com/awnumar/memguard/core
 # github.com/golang/protobuf v1.2.0
 github.com/golang/protobuf/proto
-# github.com/sfomuseum/go-flags v0.0.2
+# github.com/sfomuseum/go-flags v0.1.0
 github.com/sfomuseum/go-flags
 # github.com/whosonfirst/go-sanitize v0.1.0
 github.com/whosonfirst/go-sanitize
-# golang.org/x/crypto v0.0.0-20200414173820-0848c9571904
+# golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79
+golang.org/x/crypto/blake2b
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/nacl/secretbox
 golang.org/x/crypto/pbkdf2
 golang.org/x/crypto/poly1305
 golang.org/x/crypto/salsa20/salsa
 golang.org/x/crypto/scrypt
-# golang.org/x/net v0.0.0-20190613194153-d28f0bde5980
+# golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 golang.org/x/net/context
 golang.org/x/net/context/ctxhttp
 golang.org/x/net/html
@@ -34,9 +39,10 @@ golang.org/x/net/html/atom
 # golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 golang.org/x/oauth2
 golang.org/x/oauth2/internal
-# golang.org/x/sys v0.0.0-20190412213103-97732733099d
+# golang.org/x/sys v0.0.0-20200323222414-85ca7c5b95cd
 golang.org/x/sys/cpu
 golang.org/x/sys/unix
+golang.org/x/sys/windows
 # google.golang.org/appengine v1.4.0
 google.golang.org/appengine/internal
 google.golang.org/appengine/internal/base
