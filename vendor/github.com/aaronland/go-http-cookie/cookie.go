@@ -11,8 +11,11 @@ import (
 
 type Cookie interface {
 	Get(*http.Request) (*memguard.LockedBuffer, error)
+	GetString(*http.Request) (string, error)
 	Set(http.ResponseWriter, *memguard.LockedBuffer) error
+	SetString(http.ResponseWriter, string) error
 	SetWithCookie(http.ResponseWriter, *memguard.LockedBuffer, *http.Cookie) error
+	SetStringWithCookie(http.ResponseWriter, string, *http.Cookie) error
 	Delete(http.ResponseWriter) error
 }
 

@@ -60,6 +60,19 @@ func NewEncryptedCookie(ctx context.Context, uri string) (Cookie, error) {
 	return &c, nil
 }
 
+func (c *EncryptedCookie) GetString(req *http.Request) (string, error) {
+
+	buf, err := c.Get(req)
+
+	if err != nil {
+		return "", err
+	}
+
+	defer buf.Destroy()
+
+	return buf.String(), nil
+}
+
 func (c *EncryptedCookie) Get(req *http.Request) (*memguard.LockedBuffer, error) {
 
 	http_cookie, err := req.Cookie(c.name)
@@ -80,9 +93,25 @@ func (c *EncryptedCookie) Get(req *http.Request) (*memguard.LockedBuffer, error)
 	return sb.Unlock(http_cookie.Value)
 }
 
+func (c *EncryptedCookie) SetString(rsp http.ResponseWriter, value string) error {
+
+	buf := memguard.NewBufferFromBytes([]byte(value))
+	defer buf.Destroy()
+
+	return c.Set(rsp, buf)
+}
+
 func (c *EncryptedCookie) Set(rsp http.ResponseWriter, buf *memguard.LockedBuffer) error {
 
 	http_cookie := &http.Cookie{}
+	return c.SetWithCookie(rsp, buf, http_cookie)
+}
+
+func (c *EncryptedCookie) SetStringWithCookie(rsp http.ResponseWriter, value string, http_cookie *http.Cookie) error {
+
+	buf := memguard.NewBufferFromBytes([]byte(value))
+	defer buf.Destroy()
+
 	return c.SetWithCookie(rsp, buf, http_cookie)
 }
 
@@ -95,15 +124,7 @@ func (c *EncryptedCookie) SetWithCookie(rsp http.ResponseWriter, buf *memguard.L
 	opts := secretbox.NewSecretboxOptions()
 	opts.Salt = c.salt
 
-	secret, err := c.secret.Open()
-
-	if err != nil {
-		return err
-	}
-
-	defer secret.Destroy()
-
-	sb, err := secretbox.NewSecretbox(secret.String(), opts)
+	sb, err := secretbox.NewSecretboxWithEnclave(c.secret, opts)
 
 	if err != nil {
 		return err

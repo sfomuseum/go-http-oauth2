@@ -3,7 +3,7 @@ module github.com/sfomuseum/go-http-oauth2
 go 1.12
 
 require (
-	github.com/aaronland/go-http-cookie v0.3.1
+	github.com/aaronland/go-http-cookie v0.3.2
 	github.com/aaronland/go-http-crumb v0.1.0
 	github.com/aaronland/go-http-sanitize v0.0.4
 	github.com/aaronland/go-string v0.1.2
