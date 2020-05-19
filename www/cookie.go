@@ -276,14 +276,14 @@ func OAuth2RemoveAccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, e
 	return h, nil
 }
 
-func AppendAccessTokenHandler(opts *oauth2.Options, next_handler http.Handler) http.Handler {
+func AppendAccessTokenFromCookieHandler(opts *oauth2.Options, next_handler http.Handler) http.Handler {
 
 	fn := func(rsp http.ResponseWriter, req *http.Request) {
 
-		token, err := GetOAuth2TokenFromCookie(opts, req)
+		token, _ := GetOAuth2TokenFromCookie(opts, req)
 
-		if err != nil {
-			// http.Error(rsp, err.Error(), http.StatusInternalServerError)
+		if token == nil {
+			next_handler.ServeHTTP(rsp, req)
 			return
 		}
 
@@ -310,6 +310,10 @@ func NewAccessTokenRewriteFunc(token *goog_oauth2.Token) rewrite.RewriteHTMLFunc
 
 			token_attr := html.Attribute{token_ns, token_key, token_value}
 			n.Attr = append(n.Attr, token_attr)
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			rewrite_func(c, w)
 		}
 	}
 
