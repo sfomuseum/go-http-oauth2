@@ -305,7 +305,7 @@ func NewAccessTokenRewriteFunc(token *goog_oauth2.Token) rewrite.RewriteHTMLFunc
 		if n.Type == html.ElementNode && n.Data == "body" {
 
 			token_ns := ""
-			token_key := "data-access-token"
+			token_key := "data-oauth2-access-token"
 			token_value := token.AccessToken
 
 			token_attr := html.Attribute{token_ns, token_key, token_value}
