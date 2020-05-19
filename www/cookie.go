@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/aaronland/go-http-cookie"
+	"github.com/aaronland/go-http-rewrite"
 	"github.com/aaronland/go-http-sanitize"
 	"github.com/awnumar/memguard"
 	"github.com/sfomuseum/go-http-oauth2"
+	"golang.org/x/net/html"
 	goog_oauth2 "golang.org/x/oauth2"
+	"io"
 	_ "log"
 	"net/http"
 	"net/url"
@@ -271,6 +274,46 @@ func OAuth2RemoveAccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, e
 
 	h := http.HandlerFunc(fn)
 	return h, nil
+}
+
+func AppendAccessTokenHandler(opts *oauth2.Options, next_handler http.Handler) http.Handler {
+
+	fn := func(rsp http.ResponseWriter, req *http.Request) {
+
+		token, err := GetOAuth2TokenFromCookie(opts, req)
+
+		if err != nil {
+			// http.Error(rsp, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		rewrite_func := NewAccessTokenRewriteFunc(token)
+		rewrite_handler := rewrite.RewriteHTMLHandler(next_handler, rewrite_func)
+
+		rewrite_handler.ServeHTTP(rsp, req)
+	}
+
+	return http.HandlerFunc(fn)
+}
+
+func NewAccessTokenRewriteFunc(token *goog_oauth2.Token) rewrite.RewriteHTMLFunc {
+
+	var rewrite_func rewrite.RewriteHTMLFunc
+
+	rewrite_func = func(n *html.Node, w io.Writer) {
+
+		if n.Type == html.ElementNode && n.Data == "body" {
+
+			token_ns := ""
+			token_key := "data-access-token"
+			token_value := token.AccessToken
+
+			token_attr := html.Attribute{token_ns, token_key, token_value}
+			n.Attr = append(n.Attr, token_attr)
+		}
+	}
+
+	return rewrite_func
 }
 
 func GetOAuth2TokenFromCookie(opts *oauth2.Options, req *http.Request) (*goog_oauth2.Token, error) {
