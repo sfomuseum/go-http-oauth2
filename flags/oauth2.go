@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/aaronland/go-http-crumb"
 	"github.com/aaronland/go-string/random"
-	"github.com/sfomuseum/go-flags"
+	"github.com/sfomuseum/go-flags/lookup"
 	"github.com/sfomuseum/go-http-oauth2"
 	goog_oauth2 "golang.org/x/oauth2"
 	"net/url"
@@ -45,35 +45,35 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 
 	oauth2_func := func() {
 
-		client_id, err := flags.StringVar(fs, "oauth2-client-id")
+		client_id, err := lookup.StringVar(fs, "oauth2-client-id")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		client_secret, err := flags.StringVar(fs, "oauth2-client-secret")
+		client_secret, err := lookup.StringVar(fs, "oauth2-client-secret")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		auth_url, err := flags.StringVar(fs, "oauth2-auth-url")
+		auth_url, err := lookup.StringVar(fs, "oauth2-auth-url")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		token_url, err := flags.StringVar(fs, "oauth2-token-url")
+		token_url, err := lookup.StringVar(fs, "oauth2-token-url")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		str_scopes, err := flags.StringVar(fs, "oauth2-scopes")
+		str_scopes, err := lookup.StringVar(fs, "oauth2-scopes")
 
 		if err != nil {
 			oauth2_err = err
@@ -82,14 +82,14 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 
 		scopes := strings.Split(str_scopes, ",")
 
-		path_auth, err := flags.StringVar(fs, "path-oauth2-auth")
+		path_auth, err := lookup.StringVar(fs, "path-oauth2-auth")
 
 		if err != nil {
 			oauth2_err = err
 			return
 		}
 
-		path_token, err := flags.StringVar(fs, "path-oauth2-token")
+		path_token, err := lookup.StringVar(fs, "path-oauth2-token")
 
 		if err != nil {
 			oauth2_err = err
@@ -107,7 +107,7 @@ func OAuth2OptionsWithFlagSet(ctx context.Context, fs *flag.FlagSet) (*oauth2.Op
 			RedirectURL: path_token,
 		}
 
-		cookie_uri, err := flags.StringVar(fs, "oauth2-cookie-uri")
+		cookie_uri, err := lookup.StringVar(fs, "oauth2-cookie-uri")
 
 		if err != nil {
 			oauth2_err = err
