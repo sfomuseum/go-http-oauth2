@@ -163,6 +163,7 @@ func OAuth2AccessTokenCookieHandler(opts *oauth2.Options) (http.Handler, error) 
 			return
 		}
 
+
 		ck, err := NewOAuth2TokenCookie(ctx, opts)
 
 		if err != nil {
