@@ -10,6 +10,6 @@ require (
 	github.com/aaronland/go-string v0.1.2
 	github.com/awnumar/memguard v0.22.2
 	github.com/sfomuseum/go-flags v0.8.2
-	golang.org/x/net v0.0.0-20210525063256-abc453219eb5
+	golang.org/x/net v0.7.0
 	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
 )
