@@ -19,8 +19,9 @@ func Purge() {
 
 	func() {
 		// Halt the re-key cycle and prevent new enclaves.
-		key.Lock()
-		defer key.Unlock()
+		k := getKey()
+		k.Lock()
+		defer k.Unlock()
 
 		// Get a snapshot of existing Buffers.
 		snapshot := buffers.flush()
@@ -41,7 +42,7 @@ func Purge() {
 						// couldn't change it to mutable; we can't wipe it! (could this happen?)
 						// not sure what we can do at this point, just warn and move on
 						fmt.Fprintf(os.Stderr, "!WARNING: failed to wipe immutable data at address %p", &b.data)
-						continue
+						continue // wipe in subprocess?
 					}
 				}
 				Wipe(b.data)
@@ -49,9 +50,8 @@ func Purge() {
 		}
 	}()
 
-	// Destroy and recreate the key.
-	key.Destroy() // should be a no-op
-	key = NewCoffer()
+	// Create a new key.
+	setKey(NewCoffer())
 
 	// If we encountered an error, panic.
 	if opErr != nil {
@@ -64,7 +64,7 @@ Exit terminates the process with a specified exit code but securely wipes and cl
 */
 func Exit(c int) {
 	// Wipe the encryption key used to encrypt data inside Enclaves.
-	key.Destroy()
+	getKey().Destroy()
 
 	// Get a snapshot of existing Buffers.
 	snapshot := buffers.copy() // copy ensures the buffers stay in the list until they are destroyed.

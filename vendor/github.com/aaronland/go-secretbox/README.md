@@ -1,6 +1,10 @@
 # go-secretbox
 
-A thin wrapper around the Golang [secretbox](https://godoc.org/golang.org/x/crypto/nacl/secretbox) package.
+A thin wrapper around the Golang [secretbox](https://godoc.org/golang.org/x/crypto/nacl/secretbox) and [awnumar/memguard](https://github.com/awnumar/memguard) package.
+
+## Documentation
+
+[![Go Reference](https://pkg.go.dev/badge/github.com/aaronland/go-secretbox.svg)](https://pkg.go.dev/github.com/aaronland/go-secretbox)
 
 ## Example
 
@@ -9,25 +13,30 @@ package main
 
 import (
 	"github.com/aaronland/go-secretbox"
-	"github.com/aaronland/go-secretbox/salt"
+	"github.com/awnumar/memguard"	
+	"log"
 )
 
 func main() {
 
-     	secret := "S33KRET"
+	secret := "s33kret"
+	salt := "s4lty"
+	plain := "hello world"
 
-     	st_opts := salt.DefaultSaltOptions()
-	s, _ := salt.NewRandomSalt(st_opts)
+	secret_buf := memguard.NewBufferFromBytes([]byte(secret))
+	defer secret_buf.Destroy()
+	
+	opts := secretbox.NewSecretboxOptions()
+	opts.Salt = salt
 
-	sb_opts := secretbox.NewSecretboxOptions()
-	sb_opts.Salt = s
+	sb, _ := secretbox.NewSecretboxWithBuffer(secret_buf, opts)
 
-	sb, _ := secretbox.NewSecretbox(secret, sb_opts)
+	locked, _ := sb.Lock([]byte(plain))
+	unlocked, _ := sb.Unlock(locked)
 
-	sb_path, _ = sb.LockFile("/some/file/to/lock")
-
-	// or this:
-	// sb_path, _ = sb.UnlockFile("/some/file/to/unlock")	
+	if string(unlocked.String()) != plain {
+		log.Fatal("Unlock failed")
+	}
 }
 ```
 
@@ -36,4 +45,4 @@ _Error handling omitted for the sake of brevity._
 ## See also
 
 * https://godoc.org/golang.org/x/crypto/nacl/secretbox
-* https://github.com/aaronland/go-string
+* https://github.com/awnumar/memguard

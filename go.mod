@@ -1,15 +1,28 @@
 module github.com/sfomuseum/go-http-oauth2
 
-go 1.12
+go 1.18
 
 require (
-	github.com/aaronland/go-http-cookie v0.3.3
-	github.com/aaronland/go-http-crumb v0.1.2
-	github.com/aaronland/go-http-rewrite v0.0.7
-	github.com/aaronland/go-http-sanitize v0.0.5
-	github.com/aaronland/go-string v0.1.2
-	github.com/awnumar/memguard v0.22.2
-	github.com/sfomuseum/go-flags v0.8.2
-	golang.org/x/net v0.7.0
-	golang.org/x/oauth2 v0.0.0-20210514164344-f6687ab2804c
+	github.com/aaronland/go-http-cookie v1.0.1
+	github.com/aaronland/go-http-crumb v1.0.3
+	github.com/aaronland/go-http-rewrite v1.1.0
+	github.com/aaronland/go-http-sanitize v0.0.6
+	github.com/aaronland/go-string v1.0.0
+	github.com/awnumar/memguard v0.22.3
+	github.com/sfomuseum/go-flags v0.10.0
+	golang.org/x/net v0.8.0
+	golang.org/x/oauth2 v0.6.0
+)
+
+require (
+	github.com/aaronland/go-roster v1.0.0 // indirect
+	github.com/aaronland/go-secretbox v1.0.0 // indirect
+	github.com/awnumar/memcall v0.1.2 // indirect
+	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/sfomuseum/go-http-fault/v2 v2.0.0 // indirect
+	github.com/whosonfirst/go-sanitize v0.1.0 // indirect
+	golang.org/x/crypto v0.0.0-20220525230936-793ad666bf5e // indirect
+	golang.org/x/sys v0.6.0 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 )
