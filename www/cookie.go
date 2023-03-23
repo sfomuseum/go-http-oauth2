@@ -4,17 +4,18 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	_ "log"
+	"net/http"
+	"net/url"
+
 	"github.com/aaronland/go-http-cookie"
 	"github.com/aaronland/go-http-rewrite"
 	"github.com/aaronland/go-http-sanitize"
 	"github.com/awnumar/memguard"
 	"github.com/sfomuseum/go-http-oauth2"
 	"golang.org/x/net/html"
-	goog_oauth2 "golang.org/x/oauth2"
-	"io"
-	_ "log"
-	"net/http"
-	"net/url"
+	goog_oauth2 "golang.org/x/oauth2"	
 )
 
 const CONTEXT_TOKEN_KEY string = "token"

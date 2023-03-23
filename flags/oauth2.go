@@ -5,15 +5,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/aaronland/go-http-crumb"
-	"github.com/aaronland/go-string/random"
-	"github.com/sfomuseum/go-flags/lookup"
-	"github.com/sfomuseum/go-http-oauth2"
-	goog_oauth2 "golang.org/x/oauth2"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/aaronland/go-http-crumb"
+	"github.com/aaronland/go-string/random"
+	"github.com/sfomuseum/go-flags/lookup"
+	"github.com/sfomuseum/go-http-oauth2"
+	goog_oauth2 "golang.org/x/oauth2"	
 )
 
 var oauth2_init sync.Once
